@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --font-mono: 'JetBrains Mono', monospace;
+        --font-sans: 'Inter', sans-serif;
+    }
+}
+
+body {
+    background-color: #000000;
+    /* Matte Graphite */
+    color: #EAEAEA;
+    overflow: hidden;
+    /* App-like feel */
+}
+
+/* Custom Scrollbar - Minimal */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1a1a1a;
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #333;
+}
+
+@layer utilities {
+    .text-xxs {
+        font-size: 0.65rem;
+        line-height: 1rem;
+    }
+}
