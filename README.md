@@ -2,8 +2,8 @@
 
 **Cipher Terminal** is a high-performance, professional-grade cryptocurrency market visualization interface designed for real-time analysis. Built with a focus on speed, data density, and aesthetic precision, it delivers a premium "OLED" visual experience optimized for market monitoring and research.
 
-![Interface Preview](/assets/interface-preview.png)
-*(Placeholder: Add actual interface screenshot here)*
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/a46c1dde-f1e8-450d-99a8-0812949b4a12" />
+
 
 ## Project Overview
 
