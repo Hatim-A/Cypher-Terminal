@@ -1,13 +1,13 @@
 # Cipher Terminal
 
-**Cipher Terminal** is a high-performance, professional-grade cryptocurrency trading interface designed for real-time market analysis and execution. Built with a focus on speed, data density, and aesthetic precision, it delivers a premium "OLED" visual experience optimized for low-latency decision-making.
+**Cipher Terminal** is a high-performance, professional-grade cryptocurrency market visualization interface designed for real-time analysis. Built with a focus on speed, data density, and aesthetic precision, it delivers a premium "OLED" visual experience optimized for market monitoring and research.
 
 ![Interface Preview](/assets/interface-preview.png)
 *(Placeholder: Add actual interface screenshot here)*
 
 ## Project Overview
 
-Cipher Terminal reconstructs the professional trading desk experience in a modern web architecture. It leverages direct WebSocket connections for millisecond-latency order book updates and REST APIs for granular historical data. The application is engineered to handle high-frequency state updates without compromising render performance, utilizing a strictly typed, component-driven architecture.
+Cipher Terminal reconstructs the professional market terminal experience in a modern web architecture. It leverages direct WebSocket connections for millisecond-latency order book updates and REST APIs for granular historical data. The application is engineered to handle high-frequency state updates without compromising render performance, utilizing a strictly typed, component-driven architecture.
 
 ### Key Features
 
@@ -68,12 +68,16 @@ Ensure you have Node.js 18+ installed.
 
 Cipher Terminal acts as a frontend interface. By default, it is configured to connect to public cryptocurrency exchange APIs.
 
-To customize data sources or endpoints, navigate to `lib/cryptoApi.ts`.
+To customize data sources or endpoints, navigate to `lib/config.ts`.
 
 ```typescript
-// Example configuration in lib/cryptoApi.ts
-export const BASE_URL = "https://api.exchange.com/v3";
-export const WS_URL = "wss://stream.exchange.com/ws";
+// Example configuration in lib/config.ts
+export const CONFIG = {
+    EXCHANGE: {
+        REST_URL: "https://api.exchange.com/v3",
+        WS_URL: "wss://stream.exchange.com/ws",
+    }
+};
 ```
 
 ## Contributing

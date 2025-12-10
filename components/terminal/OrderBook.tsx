@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { CONFIG } from '@/lib/config';
 
 export const OrderBook = ({ symbol }: { symbol: string }) => {
     const [bids, setBids] = useState<[string, string][]>([]);
@@ -10,7 +11,7 @@ export const OrderBook = ({ symbol }: { symbol: string }) => {
 
     // Subscribe to diff depth stream for live updates (simplified uses depth 20 stream)
     const stream = `${symbol.toLowerCase()}@depth20@100ms`;
-    const { lastMessage } = useWebSocket(`wss://stream.binance.com:9443/ws/${stream}`);
+    const { lastMessage } = useWebSocket(`${CONFIG.EXCHANGE.WS_URL}/${stream}`);
 
     useEffect(() => {
         if (lastMessage) {

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { CONFIG } from './config';
 
-const CG_BASE = "https://api.coingecko.com/api/v3";
+const CG_BASE = CONFIG.MARKET_DATA.BASE_URL;
 
 export interface Asset {
     id: string;
@@ -81,7 +82,7 @@ export interface NewsItem {
 
 export const fetchNews = async (): Promise<NewsItem[]> => {
     try {
-        const res = await axios.get("https://min-api.cryptocompare.com/data/v2/news/?lang=EN");
+        const res = await axios.get(`${CONFIG.NEWS.BASE_URL}/news/?lang=EN`);
         return res.data.Data.map((item: any) => ({
             id: item.id,
             title: item.title,

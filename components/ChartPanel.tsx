@@ -75,13 +75,29 @@ export const ChartPanel = ({ asset }: { asset: Asset | undefined }) => {
         setActiveIndicators(next);
     };
 
+    // Escape Key Listener for Zen Mode
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isZenMode) {
+                setIsZenMode(false);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isZenMode]);
+
     // Initialize Chart
     useEffect(() => {
         if (!chartContainerRef.current) return;
 
         // Cleanup old chart
         if (chartRef.current) {
-            chartRef.current.remove();
+            try {
+                chartRef.current.remove();
+            } catch (e) {
+                // Ignore disposal errors on cleanup
+            }
+            chartRef.current = null;
         }
 
         const chart = createChart(chartContainerRef.current, {
@@ -132,15 +148,23 @@ export const ChartPanel = ({ asset }: { asset: Asset | undefined }) => {
 
         // Resize handler using ResizeObserver for robustness
         const handleResize = () => {
+            // Check if chart is still valid before resizing
             if (chartContainerRef.current && chartRef.current) {
                 const { clientWidth, clientHeight } = chartContainerRef.current;
-                chartRef.current.applyOptions({ width: clientWidth, height: clientHeight });
-                chartRef.current.timeScale().fitContent(); // Auto-fit on resize
+                // Double check it hasn't been disposed (safety)
+                try {
+                    chartRef.current.applyOptions({ width: clientWidth, height: clientHeight });
+                    chartRef.current.timeScale().fitContent(); // Auto-fit on resize
+                } catch (e) {
+                    console.warn("Chart resize failed:", e);
+                }
             }
         };
 
         const resizeObserver = new ResizeObserver(() => {
-            handleResize();
+            // Defer execution slightly to strictly avoid "ResizeObserver loop limit exceeded" 
+            // and reduce race condition probability
+            requestAnimationFrame(() => handleResize());
         });
 
         if (chartContainerRef.current) {
@@ -148,9 +172,21 @@ export const ChartPanel = ({ asset }: { asset: Asset | undefined }) => {
         }
 
         return () => {
+            // 1. Disconnect observer FIRST
             resizeObserver.disconnect();
+
+            // 2. Clear refs to prevent other effects from using the dying chart
+            seriesRef.current = null;
+            smaSeriesRef.current = null;
+            emaSeriesRef.current = null;
+
+            // 3. Remove chart
             if (chartRef.current) {
-                chartRef.current.remove();
+                try {
+                    chartRef.current.remove();
+                } catch (e) {
+                    // Ignore already disposed errors
+                }
                 chartRef.current = null;
             }
         };
@@ -160,44 +196,49 @@ export const ChartPanel = ({ asset }: { asset: Asset | undefined }) => {
     useEffect(() => {
         if (!chartRef.current || !seriesRef.current || !history || history.length === 0) return;
 
-        // 1. Set Candles
-        seriesRef.current.setData(history as unknown as CandlestickData<Time>[]);
+        try {
+            // 1. Set Candles
+            seriesRef.current.setData(history as unknown as CandlestickData<Time>[]);
 
-        // 2. Manage SMA
-        if (activeIndicators.has('SMA')) {
-            if (!smaSeriesRef.current) {
-                smaSeriesRef.current = chartRef.current.addLineSeries({
-                    color: '#FFA500', // Orange
-                    lineWidth: 2,
-                    priceLineVisible: false,
-                    lastValueVisible: false,
-                });
+            // 2. Manage SMA
+            if (activeIndicators.has('SMA')) {
+                if (!smaSeriesRef.current) {
+                    smaSeriesRef.current = chartRef.current.addLineSeries({
+                        color: '#FFA500', // Orange
+                        lineWidth: 2,
+                        priceLineVisible: false,
+                        lastValueVisible: false,
+                    });
+                }
+                const smaData = calculateSMA(history as unknown as CandlestickData<Time>[], 20);
+                smaSeriesRef.current.setData(smaData);
+            } else if (smaSeriesRef.current) {
+                chartRef.current.removeSeries(smaSeriesRef.current);
+                smaSeriesRef.current = null;
             }
-            const smaData = calculateSMA(history as unknown as CandlestickData<Time>[], 20);
-            smaSeriesRef.current.setData(smaData);
-        } else if (smaSeriesRef.current) {
-            chartRef.current.removeSeries(smaSeriesRef.current);
-            smaSeriesRef.current = null;
-        }
 
-        // 3. Manage EMA
-        if (activeIndicators.has('EMA')) {
-            if (!emaSeriesRef.current) {
-                emaSeriesRef.current = chartRef.current.addLineSeries({
-                    color: '#B026FF', // Neon Purple
-                    lineWidth: 2,
-                    priceLineVisible: false,
-                    lastValueVisible: false,
-                });
+            // 3. Manage EMA
+            if (activeIndicators.has('EMA')) {
+                if (!emaSeriesRef.current) {
+                    emaSeriesRef.current = chartRef.current.addLineSeries({
+                        color: '#B026FF', // Neon Purple
+                        lineWidth: 2,
+                        priceLineVisible: false,
+                        lastValueVisible: false,
+                    });
+                }
+                const emaData = calculateEMA(history as unknown as CandlestickData<Time>[], 20);
+                emaSeriesRef.current.setData(emaData);
+            } else if (emaSeriesRef.current) {
+                chartRef.current.removeSeries(emaSeriesRef.current);
+                emaSeriesRef.current = null;
             }
-            const emaData = calculateEMA(history as unknown as CandlestickData<Time>[], 20);
-            emaSeriesRef.current.setData(emaData);
-        } else if (emaSeriesRef.current) {
-            chartRef.current.removeSeries(emaSeriesRef.current);
-            emaSeriesRef.current = null;
-        }
 
-        chartRef.current.timeScale().fitContent();
+            chartRef.current.timeScale().fitContent();
+        } catch (e) {
+            // Prevent crash if chart was disposed mid-update
+            console.warn("Chart data update failed:", e);
+        }
     }, [history, activeIndicators]);
 
     if (!asset) return <div className="flex-1 bg-[#111111] border-b border-[#1a1a1a] flex items-center justify-center text-text-dim text-xs">NO ASSET SELECTED</div>;
@@ -431,10 +472,10 @@ export const ChartPanel = ({ asset }: { asset: Asset | undefined }) => {
                     {isZenMode && (
                         <button
                             onClick={() => setIsZenMode(false)}
-                            className="absolute top-4 right-4 z-50 bg-[#222]/80 hover:bg-[#333] text-white p-2 rounded shadow-lg backdrop-blur-sm transition-all border border-[#333]"
+                            className="absolute top-4 right-4 z-50 bg-soft-red hover:bg-red-600 text-white px-4 py-2 rounded shadow-2xl backdrop-blur-sm transition-all border border-red-500/50 hover:scale-105 active:scale-95"
                         >
-                            <div className="flex items-center gap-2 text-xs font-bold">
-                                <Minimize2 size={14} /> EXIT FULLSCREEN
+                            <div className="flex items-center gap-2 text-xs font-bold tracking-wider">
+                                <Minimize2 size={16} /> EXIT FULLSCREEN
                             </div>
                         </button>
                     )}

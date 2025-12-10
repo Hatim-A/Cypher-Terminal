@@ -5,8 +5,12 @@ import { createChart, ColorType, Time } from 'lightweight-charts';
 export const MainChart = ({ data }: { data: { time: number, value: number }[] }) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const chartRef = useRef<any>(null);
+    const seriesRef = useRef<any>(null);
+
+    // 1. Initialization
     useEffect(() => {
-        if (!containerRef.current || data.length === 0) return;
+        if (!containerRef.current) return;
 
         const chart = createChart(containerRef.current, {
             layout: {
@@ -29,6 +33,8 @@ export const MainChart = ({ data }: { data: { time: number, value: number }[] })
             }
         });
 
+        chartRef.current = chart;
+
         // Modern Neon Theme
         const areaSeries = chart.addAreaSeries({
             lineColor: '#00FF95',
@@ -37,26 +43,49 @@ export const MainChart = ({ data }: { data: { time: number, value: number }[] })
             lineWidth: 2,
         });
 
-        // Cast time to Time type for lightweight-charts
-        const chartData = data.map(d => ({
-            time: d.time as Time,
-            value: d.value
-        }));
-
-        areaSeries.setData(chartData);
-        chart.timeScale().fitContent();
+        seriesRef.current = areaSeries;
 
         const handleResize = () => {
-            if (containerRef.current) {
-                chart.applyOptions({ width: containerRef.current.clientWidth });
+            if (containerRef.current && chartRef.current) {
+                try {
+                    chartRef.current.applyOptions({ width: containerRef.current.clientWidth });
+                } catch (e) { /* ignore */ }
             }
         };
-        window.addEventListener('resize', handleResize);
+
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => handleResize());
+        });
+        resizeObserver.observe(containerRef.current);
 
         return () => {
-            window.removeEventListener('resize', handleResize);
-            chart.remove();
+            resizeObserver.disconnect();
+            if (chartRef.current) {
+                try {
+                    chartRef.current.remove();
+                } catch (e) { /* ignore */ }
+                chartRef.current = null;
+                seriesRef.current = null;
+            }
         };
+    }, []);
+
+    // 2. Data Updates
+    useEffect(() => {
+        if (!chartRef.current || !seriesRef.current || data.length === 0) return;
+
+        try {
+            // Cast time to Time type for lightweight-charts
+            const chartData = data.map(d => ({
+                time: d.time as Time,
+                value: d.value
+            }));
+
+            seriesRef.current.setData(chartData);
+            chartRef.current.timeScale().fitContent();
+        } catch (e) {
+            console.warn("MainChart update failed", e);
+        }
     }, [data]);
 
     return <div ref={containerRef} className="w-full h-[400px]" />;

@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { CONFIG } from './config';
 
 // Binance Public API Base
-const BINANCE_BASE = "https://api.binance.com/api/v3";
+const BINANCE_BASE = CONFIG.EXCHANGE.REST_URL;
 
 export interface Kline {
     time: number;

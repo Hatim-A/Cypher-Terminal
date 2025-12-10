@@ -19,11 +19,13 @@ export const PriceChart = ({
     useEffect(() => {
         if (!chartContainerRef.current) return;
 
-        const handleResize = () => {
-            if (chartRef.current && chartContainerRef.current) {
-                chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
-            }
-        };
+        // Cleanup old chart
+        if (chartRef.current) {
+            try {
+                chartRef.current.remove();
+            } catch (e) { /* ignore */ }
+            chartRef.current = null;
+        }
 
         const chart = createChart(chartContainerRef.current, {
             layout: {
@@ -50,18 +52,38 @@ export const PriceChart = ({
 
         candlestickSeries.setData(data);
 
-        window.addEventListener('resize', handleResize);
+        // Resize handler using ResizeObserver for robustness
+        const handleResize = () => {
+            if (chartContainerRef.current && chartRef.current) {
+                try {
+                    chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
+                } catch (e) { /* ignore */ }
+            }
+        };
+
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => handleResize());
+        });
+        resizeObserver.observe(chartContainerRef.current);
 
         return () => {
-            window.removeEventListener('resize', handleResize);
-            chart.remove();
+            resizeObserver.disconnect();
+            if (chartRef.current) {
+                try {
+                    chartRef.current.remove();
+                } catch (e) { /* ignore */ }
+                chartRef.current = null;
+                seriesRef.current = null;
+            }
         };
-    }, [backgroundColor, lineColor, textColor, areaTopColor, areaBottomColor]);
+    }, [backgroundColor, lineColor, textColor, areaTopColor, areaBottomColor]); // Still recreate on color change for now, but safe.
 
     useEffect(() => {
+        // Data update
         if (seriesRef.current && data.length > 0) {
-            // Check if we need to update or set data (simple optimization for big lists vs single updates could be added)
-            seriesRef.current.setData(data);
+            try {
+                seriesRef.current.setData(data);
+            } catch (e) { /* ignore */ }
         }
     }, [data]);
 

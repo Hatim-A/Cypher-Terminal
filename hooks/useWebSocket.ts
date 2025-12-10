@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { CONFIG } from '@/lib/config';
 
 type WSMessage = any;
 
@@ -38,19 +39,19 @@ export function useWebSocket(url: string | null) {
 
 export function useBinanceTicker(symbol: string) {
     const stream = `${symbol.toLowerCase()}@ticker`;
-    const { lastMessage } = useWebSocket(`wss://stream.binance.com:9443/ws/${stream}`);
+    const { lastMessage } = useWebSocket(`${CONFIG.EXCHANGE.WS_URL}/${stream}`);
     return lastMessage;
 }
 
 export function useBinanceAggTrades(symbol: string) {
     const stream = `${symbol.toLowerCase()}@aggTrade`;
-    const { lastMessage } = useWebSocket(`wss://stream.binance.com:9443/ws/${stream}`);
+    const { lastMessage } = useWebSocket(`${CONFIG.EXCHANGE.WS_URL}/${stream}`);
     return lastMessage;
 }
 
 export function useBinanceMultiTicker(symbols: string[]) {
     // Combine streams: e.g. /stream?streams=btcusdt@ticker/ethusdt@ticker
     const streams = symbols.map(s => `${s.toLowerCase()}@ticker`).join('/');
-    const { lastMessage } = useWebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+    const { lastMessage } = useWebSocket(`${CONFIG.EXCHANGE.WS_STREAM_URL}?streams=${streams}`);
     return lastMessage;
 }
