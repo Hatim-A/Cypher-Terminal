@@ -9,6 +9,10 @@
 
 Cipher Terminal reconstructs the professional market terminal experience in a modern web architecture. It leverages direct WebSocket connections for millisecond-latency order book updates and REST APIs for granular historical data. The application is engineered to handle high-frequency state updates without compromising render performance, utilizing a strictly typed, component-driven architecture.
 
+## Project Status
+Cipher Terminal is an active, ongoing development project.  
+Some features and modules are still incomplete, and the interface continues to evolve with frequent updates.
+
 ### Key Features
 
 -   **Real-Time Market Data**: Integrated WebSocket streams for live Order Book (Depth) and Ticker updates.
