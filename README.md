@@ -19,8 +19,7 @@ Some features and modules are still incomplete, and the interface continues to e
 -   **Professional Charting**: Advanced candlestick charting powered by TradingView's lightweight-charts, supporting custom intervals (`1m` to `1w`) and technical indicators.
 -   **High-Performance State Management**: Optimized global state handling via Zustand ensures instant UI reactivity and minimal re-renders.
 -   **True OLED / Custom Theming**: 
-    -   **OLED Mode**: Pitch black (`#000000`) backgrounds for infinite contrast.
-    -   **Ultra Palette**: Custom "True Zero Ultra" color scheme featuring Sky Blue (`#5AC2F7`) accents and Cool Grey (`#8B8F9A`) indicators.
+    -   **OLED Mode**: Pitch black (`#000000`) backgrounds for contrast.
 -   **Pro-Grade Components**:
     -   **Order Book**: Visual depth visualization with bid/ask spread analysis.
     -   **Market Overview**: Instant "Top Gainers" and "Top Losers" analysis.
